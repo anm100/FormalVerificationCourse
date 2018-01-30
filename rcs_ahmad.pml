@@ -13,9 +13,11 @@ mtype a_state;
 mtype s_state;
 byte done[N];
 ltl r1 {[]<>(s_state==processing)}
-ltl r2 {[]((cstate[0]==wait)-><>(cstate[0]==receive)) }
+ltl r2 {([]<>(cstate[0]==wait)-><>(cstate[0]==receive)) }
+ltl r21 {[]((cstate[0]==wait)-><>(cstate[0]==receive))}
+
 ltl r3 {[](counter <4)}
-ltl r4 {[]((cstate[0]==wait)->((s_state!=sleeping)U cstate[0]!=wait)) }
+ltl r4 {[]((cstate[0]==wait ||cstate[1]==wait ||cstate[2]==wait ||cstate[3]==wait)->(s_state!=sleeping)) }
 ltl test {<> (s_state==sleeping)}
 
 proctype client(byte index)
@@ -53,10 +55,10 @@ proctype server()
 		:: (done[1]==0 && task[1]!=255 && counter<3) ->atomic{done[1]=1;counter = counter+1; s_state = processing;}
 		:: (done[2]==0 && task[2]!=255 && counter<3)->atomic{done[2]=1;counter = counter+1; s_state = processing;}
 		:: (done[3]==0 && task[3]!=255 && counter<3)->atomic{done[3]=1;counter = counter+1; s_state = processing;}
-		::(done[0]==1 && task[0]!=255) ->atomic{done[0]=1;client_r[0] ! 10;task[0]=255;counter = counter-1; s_state = processing;}
-		:: (done[1]==1 && task[1]!=255) ->atomic{done[1]=1;client_r[1] ! 10;task[1]=255;counter = counter-1; s_state = processing;}
-		:: (done[2]==1&& task[2]!=255)->atomic{done[2]=1;client_r[2] ! 10;task[2]=255;counter = counter-1; s_state = processing;}
-		:: (done[3]==1 && task[3]!=255)->atomic{done[3]=1;client_r[3] ! 10;task[3]=255;counter = counter-1; s_state = processing;}
+		::(done[0]==1 && task[0]!=255 && counter>0) ->atomic{done[0]=1;client_r[0] ! 10;task[0]=255;counter = counter-1; s_state = processing;}
+		:: (done[1]==1 && task[1]!=255 && counter>0) ->atomic{done[1]=1;client_r[1] ! 10;task[1]=255;counter = counter-1; s_state = processing;}
+		:: (done[2]==1&& task[2]!=255 && counter>0)->atomic{done[2]=1;client_r[2] ! 10;task[2]=255;counter = counter-1; s_state = processing;}
+		:: (done[3]==1 && task[3]!=255 && counter>0)->atomic{done[3]=1;client_r[3] ! 10;task[3]=255;counter = counter-1; s_state = processing;}
 		::(task[0]==255 && task[1]==255 && task[2]==255 && task[3]==255)-> atomic {s_state = sleeping;}
 		fi
 	:: (s_state == sleeping) ->
